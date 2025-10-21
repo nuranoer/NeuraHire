@@ -1,53 +1,49 @@
-CREATE DATABASE IF NOT EXISTS neurahire CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE neurahire;
+CREATE DATABASE IF NOT EXISTS screening_ai DEFAULT CHARACTER SET utf8mb4;
+USE neura_hire;
 
--- Uploaded & internal docs
-CREATE TABLE IF NOT EXISTS documents (
-  id CHAR(36) PRIMARY KEY,
-  type ENUM('cv','report','job_desc','brief','rubric_cv','rubric_proj') NOT NULL,
-  filename VARCHAR(255) NOT NULL,
-  path VARCHAR(512) NOT NULL,
-  mime VARCHAR(64) NOT NULL,
-  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  parsed_text LONGTEXT NULL
-) ENGINE=InnoDB;
+-- Tabel file yang diupload kandidat (CV & Report)
+CREATE TABLE files (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  kind ENUM('cv','report') NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  mime VARCHAR(100) NOT NULL,
+  path VARCHAR(500) NOT NULL,
+  pages INT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- Embeddings for RAG (each chunk is a row)
-CREATE TABLE IF NOT EXISTS doc_chunks (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  document_id CHAR(36) NOT NULL,
-  doc_type ENUM('job_desc','brief','rubric_cv','rubric_proj') NOT NULL,
-  chunk_index INT NOT NULL,
-  text MEDIUMTEXT NOT NULL,
-  embedding JSON NOT NULL,
-  FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+-- Tabel dokumen internal (Ground Truth: JD, Case Study Brief, Rubrics)
+CREATE TABLE internal_docs (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(255) NOT NULL,
+  doc_type ENUM('job_description','case_study_brief','cv_rubric','report_rubric') NOT NULL,
+  source_path VARCHAR(500) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- Evaluation jobs
-CREATE TABLE IF NOT EXISTS jobs (
-  id CHAR(36) PRIMARY KEY,
+-- Tabel job evaluasi (antrian asinkron)
+CREATE TABLE jobs (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
   job_title VARCHAR(255) NOT NULL,
-  cv_doc_id CHAR(36) NOT NULL,
-  report_doc_id CHAR(36) NOT NULL,
+  cv_file_id BIGINT NOT NULL,
+  report_file_id BIGINT NOT NULL,
   status ENUM('queued','processing','completed','failed') NOT NULL DEFAULT 'queued',
-  error TEXT NULL,
+  attempts INT NOT NULL DEFAULT 0,
+  last_error TEXT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX(status),
-  FOREIGN KEY (cv_doc_id) REFERENCES documents(id) ON DELETE RESTRICT,
-  FOREIGN KEY (report_doc_id) REFERENCES documents(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+  FOREIGN KEY (cv_file_id) REFERENCES files(id),
+  FOREIGN KEY (report_file_id) REFERENCES files(id)
+);
 
--- Final results
-CREATE TABLE IF NOT EXISTS evaluations (
-  id CHAR(36) PRIMARY KEY,
-  job_id CHAR(36) NOT NULL,
-  cv_match_rate DECIMAL(5,4) NULL,
-  cv_feedback TEXT NULL,
-  project_score DECIMAL(3,1) NULL,
-  project_feedback TEXT NULL,
-  overall_summary TEXT NULL,
-  raw JSON NULL,
+-- Hasil evaluasi
+CREATE TABLE job_results (
+  job_id BIGINT PRIMARY KEY,
+  cv_match_rate DECIMAL(4,2) NOT NULL,
+  cv_feedback TEXT NOT NULL,
+  project_score DECIMAL(3,1) NOT NULL,
+  project_feedback TEXT NOT NULL,
+  overall_summary TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+  FOREIGN KEY (job_id) REFERENCES jobs(id)
+);
