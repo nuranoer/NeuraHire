@@ -2,7 +2,8 @@ import express from 'express';
 import { config } from './config.js';
 import { uploadRouter } from './routes/upload.js';
 import { evaluateRouter } from './routes/evaluate.js';
-import { resultRouter } from './routes/result.js';
+import { resultRouter } from './routes/results.js';
+
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));

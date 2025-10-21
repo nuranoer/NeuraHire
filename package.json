@@ -1,0 +1,31 @@
+{
+  "name": "neurahire",
+  "version": "1.0.0",
+  "description": "NeuraHire is an AI-powered backend service that automates candidate evaluation. It analyzes CVs and project reports using RAG and LLM chaining to generate structured feedback, match rates, and scores — helping recruiters make smarter, faster hiring decisions.",
+  "main": "src/server",
+  "type": "module",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuranoer/NeuraHire.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nuranoer/NeuraHire/issues"
+  },
+  "homepage": "https://github.com/nuranoer/NeuraHire#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "mysql2": "^3.15.2",
+    "pdf-parse": "^2.4.5",
+    "uuid": "^13.0.0"
+  }
+}
