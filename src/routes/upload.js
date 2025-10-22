@@ -23,7 +23,7 @@ uploadRouter.post('/', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'repo
       const text = await pdfToText(finalPath);
 
       await pool.execute(
-        `INSERT INTO documents (id,type,filename,path,mime,parsed_text) VALUES (?,?,?,?,?,?)`,
+        `INSERT INTO files (id,type,filename,path,mime,parsed_text) VALUES (?,?,?,?,?,?)`,
         [id, type, f.originalname, finalPath, f.mimetype, text]
       );
       return id;
